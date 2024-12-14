@@ -20,6 +20,9 @@ const configuration = () => ({
     authToken: process.env.TWILIO_AUTH_TOKEN,
     serviceId: process.env.TWILIO_SERVICE_ID,
   },
+  kafka: {
+    url: process.env.KAFKA_SERVICE_URL,
+  },
 })
 
 export type EnvironmentVariables = ReturnType<typeof configuration>

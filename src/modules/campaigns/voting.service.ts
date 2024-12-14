@@ -7,12 +7,14 @@ import { User } from 'modules/users/entities/users.entity'
 import { Campaign } from './entities/campaigns.entities'
 import { UserType } from 'modules/users/users.type'
 import { CampaignStatus } from './campaigns.type'
+import { ConfigService } from '@nestjs/config'
 
 export class VotingService {
   constructor(
     @InjectModel(Voting.name) private votingModel: Model<Voting>,
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Campaign.name) private campaignModel: Model<Campaign>,
+    private readonly configService: ConfigService,
   ) {}
 
   async isValidCampaign(campaignId: string) {
@@ -62,11 +64,42 @@ export class VotingService {
       throw new BadRequestException('User already voted')
     }
 
-    await this.votingModel.create({
+    const newVoting = await this.votingModel.create({
       candidateId,
       campaignId,
       userId,
     })
+    const time = newVoting.createdAt
+
+    const kafkaUrl = this.configService.get('kafka.url')
+    const voter = await this.userModel.findOne({
+      _id: userId,
+    })
+    const candidate = await this.userModel.findOne({
+      _id: candidateId,
+    })
+    const campaign = await this.campaignModel.findOne({
+      _id: campaignId,
+    })
+    const voterName = voter?.fullName
+    const candidateName = candidate?.fullName
+    const campaignName = campaign?.name
+
+    try {
+      await fetch(`${kafkaUrl}/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          fromID: userId,
+          toID: userId,
+          message: `Chiến dịch ${campaignName}: ${voterName} đã bầu cho ứng cử viên ${candidateName} vào lúc ${time}`,
+        }),
+      })
+    } catch (error) {
+      console.error('Error:', error)
+    }
     return {
       message: 'Vote successful',
     }

@@ -11,6 +11,7 @@ import { User } from 'modules/users/entities/users.entity'
 import { UserType } from 'modules/users/users.type'
 import { CampaignStatus } from './campaigns.type'
 import { Voting } from './entities/voting.entities'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class CampaignsService {
@@ -18,6 +19,7 @@ export class CampaignsService {
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Campaign.name) private campaignModel: Model<Campaign>,
     @InjectModel(Voting.name) private votingModel: Model<Voting>,
+    private readonly configService: ConfigService,
   ) {}
 
   async getCampaign(id: string) {
@@ -120,10 +122,24 @@ export class CampaignsService {
       ...createCampaignDto,
       regions,
     })
+
+    const kafkaUrl = this.configService.get('kafka.url')
+    try {
+      await fetch(`${kafkaUrl}/send-to-all`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          fromID: '67377453dd2493d9b6f46ba9',
+          message: `Chiến dịch ${campaign.name} đã được tạo vào lúc ${new Date().toISOString()}`,
+        }),
+      })
+    } catch (error) {
+      console.error('Error:', error)
+    }
     return {
       _id: campaign._id,
     }
   }
-
-  async generateVoters(campaignId: string) {}
 }

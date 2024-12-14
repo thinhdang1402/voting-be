@@ -7,7 +7,6 @@ import {
   Patch,
   Post,
   Req,
-  UseGuards,
 } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
@@ -27,6 +26,16 @@ export class UserController {
   @Get()
   async findAll() {
     return await this.userModel.find()
+  }
+
+  @Get('kafka')
+  async getUsersKafka() {
+    const listUser = await this.userModel.find()
+    const listUserKafka = listUser.map((user) => ({
+      ID: user._id,
+      Name: user.fullName || 'Anonymous',
+    }))
+    return listUserKafka
   }
 
   @Roles(RoleType.Admin)
