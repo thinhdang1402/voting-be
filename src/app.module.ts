@@ -11,6 +11,8 @@ import { UploadModule } from 'modules/upload/upload.module'
 import { AwsModule } from 'providers/aws-s3/aws-s3.module'
 import { ScheduleModule } from '@nestjs/schedule'
 import { CampaignsModule } from 'modules/campaigns/campaigns.module'
+import { AnalyticsModule } from 'modules/analytics/analytics.module'
+import { SocketModule } from 'modules/socket/socket.module'
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { CampaignsModule } from 'modules/campaigns/campaigns.module'
     UploadModule,
     AwsModule,
     CampaignsModule,
+    AnalyticsModule,
+    SocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

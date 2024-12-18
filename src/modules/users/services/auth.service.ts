@@ -82,10 +82,9 @@ export class AuthService {
   }
 
   async signIn(credentials: SignInDto) {
-    const { username, password } = credentials
-    const user = await this.userModel.findOne({
-      $or: [{ phone: username }, { username }],
-    })
+    console.log('credentials', credentials)
+    const { email, password } = credentials
+    const user = await this.userModel.findOne({ email })
 
     if (!user) throw new UnauthorizedException('Wrong credentials')
 

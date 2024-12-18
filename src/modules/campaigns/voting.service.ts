@@ -8,6 +8,7 @@ import { Campaign } from './entities/campaigns.entities'
 import { UserType } from 'modules/users/users.type'
 import { CampaignStatus } from './campaigns.type'
 import { ConfigService } from '@nestjs/config'
+import { SocketService } from 'modules/socket/socket.service'
 
 export class VotingService {
   constructor(
@@ -15,6 +16,7 @@ export class VotingService {
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Campaign.name) private campaignModel: Model<Campaign>,
     private readonly configService: ConfigService,
+    private readonly socketService: SocketService,
   ) {}
 
   async isValidCampaign(campaignId: string) {
@@ -71,35 +73,41 @@ export class VotingService {
     })
     const time = newVoting.createdAt
 
-    const kafkaUrl = this.configService.get('kafka.url')
-    const voter = await this.userModel.findOne({
-      _id: userId,
-    })
-    const candidate = await this.userModel.findOne({
-      _id: candidateId,
-    })
-    const campaign = await this.campaignModel.findOne({
-      _id: campaignId,
-    })
+    const voter = await this.userModel.findOne({ _id: userId })
+    const candidate = await this.userModel.findOne({ _id: candidateId })
+    const campaign = await this.campaignModel.findOne({ _id: campaignId })
+
     const voterName = voter?.fullName
     const candidateName = candidate?.fullName
     const campaignName = campaign?.name
 
-    try {
-      await fetch(`${kafkaUrl}/send`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          fromID: userId,
-          toID: userId,
-          message: `Chiến dịch ${campaignName}: ${voterName} đã bầu cho ứng cử viên ${candidateName} vào lúc ${time}`,
-        }),
-      })
-    } catch (error) {
-      console.error('Error:', error)
-    }
+    // const kafkaUrl = this.configService.get('kafka.url')
+    // try {
+    //   await fetch(`${kafkaUrl}/send`, {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/x-www-form-urlencoded',
+    //     },
+    //     body: new URLSearchParams({
+    //       fromID: userId,
+    //       toID: userId,
+    //       message: `Chiến dịch ${campaignName}: ${voterName} đã bầu cho ứng cử viên ${candidateName} vào lúc ${time}`,
+    //     }),
+    //   })
+    // } catch (error) {
+    //   console.error('Error:', error)
+    // }
+
+    this.socketService.emit('newVote', {
+      campaignId,
+      campaignName,
+      candidateId,
+      candidateName,
+      voterId: userId,
+      voterName,
+      time,
+    })
+
     return {
       message: 'Vote successful',
     }
