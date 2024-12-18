@@ -7,16 +7,17 @@ import { User } from 'modules/users/entities/users.entity'
 import { Campaign } from './entities/campaigns.entities'
 import { UserType } from 'modules/users/users.type'
 import { CampaignStatus } from './campaigns.type'
-import { ConfigService } from '@nestjs/config'
 import { SocketService } from 'modules/socket/socket.service'
+import { LogsService } from '../logs/logs.service'
+import { LogType } from '../logs/entities/log.entity'
 
 export class VotingService {
   constructor(
     @InjectModel(Voting.name) private votingModel: Model<Voting>,
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Campaign.name) private campaignModel: Model<Campaign>,
-    private readonly configService: ConfigService,
     private readonly socketService: SocketService,
+    private readonly logsService: LogsService,
   ) {}
 
   async isValidCampaign(campaignId: string) {
@@ -80,6 +81,20 @@ export class VotingService {
     const voterName = voter?.fullName
     const candidateName = candidate?.fullName
     const campaignName = campaign?.name
+
+    // Log the vote
+    await this.logsService.createLog(
+      LogType.VOTE,
+      'VOTE',
+      {
+        campaignId,
+        candidateId,
+        campaignName,
+        candidateName,
+        voterName,
+      },
+      userId,
+    )
 
     // const kafkaUrl = this.configService.get('kafka.url')
     // try {

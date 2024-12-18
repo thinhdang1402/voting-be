@@ -13,6 +13,7 @@ import { ScheduleModule } from '@nestjs/schedule'
 import { CampaignsModule } from 'modules/campaigns/campaigns.module'
 import { AnalyticsModule } from 'modules/analytics/analytics.module'
 import { SocketModule } from 'modules/socket/socket.module'
+import { LogsModule } from 'modules/logs/logs.module'
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { SocketModule } from 'modules/socket/socket.module'
     CampaignsModule,
     AnalyticsModule,
     SocketModule,
+    LogsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

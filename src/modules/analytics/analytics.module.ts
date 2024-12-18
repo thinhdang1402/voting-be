@@ -4,6 +4,7 @@ import { AnalyticsGateway } from './analytics.gateway'
 import { VisitCount, VisitCountSchema } from './entities/visit-count.entity'
 import { AnalyticsController } from './analystis.controller'
 import { SocketModule } from 'modules/socket/socket.module'
+import { LogsModule } from 'modules/logs/logs.module'
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { SocketModule } from 'modules/socket/socket.module'
       { name: VisitCount.name, schema: VisitCountSchema },
     ]),
     SocketModule,
+    LogsModule,
   ],
   controllers: [AnalyticsController],
   providers: [AnalyticsGateway],

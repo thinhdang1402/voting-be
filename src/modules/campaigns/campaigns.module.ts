@@ -8,6 +8,7 @@ import { User } from 'modules/users/entities/users.entity'
 import { VotingSchema } from './entities/voting.entities'
 import { Voting } from './entities/voting.entities'
 import { VotingService } from './voting.service'
+import { LogsModule } from 'modules/logs/logs.module'
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { VotingService } from './voting.service'
       { name: Campaign.name, schema: CampaignSchema },
       { name: Voting.name, schema: VotingSchema },
     ]),
+    LogsModule,
   ],
   controllers: [CampaignsController],
   providers: [CampaignsService, VotingService],
